@@ -8,7 +8,7 @@ if not os.path.exists(EXAMPLE_PATH):
     os.makedirs(EXAMPLE_PATH)
 example_evaluator = RuleBasedEvaluator()
 # 添加一些简单的规则
-example_evaluator.add_rule(BasicRules.smooth_contour, weight=0.5)
+example_evaluator.add_rule(BasicRules.smooth_contour, weight=1.0)
 example_evaluator.add_rule(BasicRules.rhythmic_variety, weight=0.5)
 example_evaluator.add_rule(BasicRules.pitch_in_key_c_major, weight=1.0)
 
@@ -24,9 +24,9 @@ print("已设置评估器规则: smooth_contour, rhythmic_variety, my_custom_rul
 #example_evaluator.add_rule(BasicRules.pitch_in_key_c_major, weight=0.3)
 ga_optimizer = MusicGeneticOptimizer(
     pop_size=100,
-    n_generations=40,
-    elite_ratio=0.1,
-    prob_point_mutation=0.15,
+    n_generations=500,
+    elite_ratio=0.2,
+    prob_point_mutation=0.1,
     prob_transposition=0,
     prob_retrograde=0,
     prob_inversion=0,
