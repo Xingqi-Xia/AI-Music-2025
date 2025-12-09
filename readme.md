@@ -157,15 +157,85 @@ best.save_midi("ga_best.mid")
 - 在 `MusicGeneticOptimizer._calculate_fitness_batch` 中，将种群网格转 REMI/token，再批量送入深度模型，返回分数并转回 numpy。
 - 建议批量化评估并运行在 GPU；示例代码已预留伪代码位置。
 
-
 ### TODO
 
 - 2. 根据人的音乐审美习惯, 设计适合的适应度函数。
 
 - 3. 引入深度学习...卷死其他人
 
-### 项目结构
+
+## transformer库
+
+GPT 自回归模型。可以用于直接生成旋律，也可以用于辅助GA算法，生成初始种群并提供适应度函数。
+
+### 核心代码
+
+- `model.py`：定义GPT模型
+  - 类 `MusicGPT`：模型本体
+    - `forward(idx, targets=None)` 前向传播，获得logits和CE损失；
+    - `generate(idx, max_new_tokens, temperature, top_k)` 自回归地生成新的token，用于音频序列的延伸。
+- `gpt_evaluator.py`：评估GPT模型的好坏
+  - 类 `GPTMusicEvaluator`：模型评估器
+    - `evaluate(population_grid)` 批量评估大量音频序列的适应度，其中适应度定义为损失的倒数。
+    - `get_fitness_score(sequence)` 评估单一音频序列的适应度；
+    - `generate(prompt_sequence, ...)` 生成音频序列。
+- `train.py`：训练GPT模型
+  - `MusicGPTDataset`：数据集；
+  - `train(config, resume_path)` ：训练并保存模型
+- `dataset/preprocess.py` ：从原始音频文件中读取数据集，并进行数据增强，保存结果为文件。
+
+### 运行/示例
+
+- 数据预处理：`python src/transformer/dataset/preprocess.py`
+- 训练：`python src/transformer/train.py --resume latest`（可不带 `--resume`）
+- 评估/生成：
+```python
+from transformer.gpt_evaluator import GPTMusicEvaluator
+eva = GPTMusicEvaluator("./transformer/checkpoints_gpt/music_gpt_v1_best.pth")
+scores = eva.evaluate(pop_grid)  # pop_grid: [B, T]
+new_seq = eva.generate([130], max_new_tokens=128, temperature=1.0, top_k=20)
+```
+
+
+## VAE库
+
+GRU 版离散序列 VAE，学习旋律潜空间并用“风格距离”给 GA 打分，附带 Transformer-VAE 备选实现。
+
+### 核心代码
+- `model/gru.py`和`train/preprocess.py`：数据预处理。读取一个MIDI文件，生成增强后的数据，保存到文件。
+- `train/model.py`：定义了各式各样的VAE模型
+- `train/dataset.py`：只是下载和保存数据集
+- `train/train.py`：非常复杂的训练流程，总之可以训练一个VAE模型出来
+- `train/vae_evaluator.py`：对接`GA/evaluator.py/MusicEvaluator`基类，对一段音符片段进行评估。强烈建议将本文件中的`MusicEvaluator`改名，并显式地继承所有evaluator的基类！
+
+### 运行/示例
+- 下载+解压 MIDI：`python src/VAE/train/preprocess.py`
+- 生成 32 长度数据集：`python src/VAE/train/dataset.py`
+- 训练：`python src/VAE/train/train.py`
+- 评估打分：
+```python
+from VAE.vae_evaluator import MusicEvaluator
+import torch
+eva = MusicEvaluator("checkpoints/vae_gru_bach_v2_best.pth")
+eva.set_target_style(torch.load("classical_dataset.pt")[:1024])
+score = eva.get_style_fitness(your_seq)
+```
+
+
+## 项目结构
 
 - `MusicRep/` : 音乐表示相关代码, 主要用于旋律的不同编码和转换, 以及把旋律进行播放
     - midi_player.py : MIDI文件播放模块
 - `GA/` : 遗传算法相关代码
+    - `ga_engine.py`：遗传算法主循环，支持移调/逆行/倒影等音乐算子。可直接替换 `evaluator` 为深度模型。
+    - `ga_engine_vae.py`：VAE 驱动的遗传算法引擎。
+    - `evaluator.py`：评估器接口与规则库；可直接使用 `RuleBasedEvaluator`，也可挂接深度评估器。
+- `transformer/`：包含GPT评估器、模型定义、训练脚本和数据预处理，主要用于生成旋律片段和辅助遗传算法种群初始化。
+    - `model.py`：MusicGPT 模型定义。
+    - `train.py`：GPT 训练脚本与数据集切片加载器。
+    - `gpt_evaluator.py`：将训练好的 MusicGPT 封装为 GA 适用的评估器/生成器，支持 `evaluate()` 批量打分与 `generate()` 续写旋律。
+    - `dataset/preprocess.py`：从 MIDI 提取主旋律，生成 GPT 训练数据集。
+- `VAE/`：基于 GRU 的变分自编码器与评估
+    - `vae_evaluator.py`：加载训练好的 GRU-VAE，计算潜空间风格相似度评分。
+    - `model/`：`gru.py` 定义 GRU-VAE 主体。
+    - `train/`：数据预处理、模型训练与日志（tensorboard events）存放位置。
