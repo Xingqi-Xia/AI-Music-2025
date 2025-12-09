@@ -205,3 +205,19 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+#pytorch
+#所有.pth文件,除了music_gpt_v1_epoch_150.pth
+*.pth
+!music_gpt_v1_epoch_150.pth
+#所有.pt文件
+*.pt
+#所有.midi文件
+*.midi
+*.mid
+#整个src/transformer/logs_gpt文件夹
+src/transformer/logs_gpt/
+
+#vae
+# 整个VAE文件夹
+src/VAE/
