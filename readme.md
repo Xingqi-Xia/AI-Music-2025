@@ -124,7 +124,8 @@ MusicRep 是一个用于表示和处理旋律的python库，它支持我们将�
         - `from_random()`：生成一条符合音域的随机旋律。
         - `to_midi_object()` / `save_midi(path)`：合并延音，导出 `miditoolkit.MidiFile` 或直接存成本地文件。
         - `to_remi_tokens()`：生成简化 REMI token 序列（Bar/Pos/Pitch/Dur），主要用来以后喂给Transformer。
-        - `render_wav(output_wav, soundfont_path=None)`：经 MIDI→音频渲染（依赖 `midi2audio`/`fluidsynth`，可选）。
+        - `render_wav(output_wav, soundfont_path=None)`：将MIDI序列渲染为音频文件（依赖 `midi2audio`/`fluidsynth`，可选）。
+        - `render_staff(output)`：输出五线谱（依赖`music21`且需要配置外部环境，可选）。
 
 - `Synthesizer`（来自`synthesizer.py`）：一个纯 Python 简易合成器，因为服务器没有声卡，按网格渲染 WAV，不依赖 MIDI 播放。
     - 指定合成音色：

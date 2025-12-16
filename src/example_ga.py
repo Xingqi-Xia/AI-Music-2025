@@ -3,6 +3,9 @@ import numpy as np
 from MusicRep import MelodySequence, Synthesizer, MusicConfig, SineStrategy
 import os
 
+# 为了结果可复现，添加随机数种子
+np.random.seed(int.from_bytes("SYBNB!".encode()[:4],'big'))
+
 EXAMPLE_PATH="example_outputs/ga_example/"
 if not os.path.exists(EXAMPLE_PATH):
     os.makedirs(EXAMPLE_PATH)
@@ -48,6 +51,7 @@ best_melody = MelodySequence(best_melody_grid)
 
 # 输出结果
 print("最优旋律序列的音符网格:", best_melody.grid)
+best_melody.save_staff(os.path.join(EXAMPLE_PATH, "best_melody.png"))
 # 导出为wav文件试听
 synth.render(best_melody.grid, bpm=120, output_path=os.path.join(EXAMPLE_PATH, "best_melody.wav"))
 print("已保存最优旋律的合成音频为 best_melody.wav")

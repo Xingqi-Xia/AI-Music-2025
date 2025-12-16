@@ -51,8 +51,10 @@ class MelodySequence:
             self.grid = np.full(MusicConfig.TOTAL_STEPS, MusicConfig.REST_VAL)
 
     @classmethod
-    def from_random(cls):
+    def from_random(cls, seed=None):
         """工厂方法：随机生成一个符合音域的序列（用于GA初始化）"""
+        if seed is not None:
+            np.random.seed(seed)
         new_grid = []
         for _ in range(MusicConfig.TOTAL_STEPS):
             r = np.random.random()
@@ -213,6 +215,111 @@ class MelodySequence:
         finally:
             if os.path.exists(temp_midi):
                 os.remove(temp_midi)
+    
+    # ==============================
+    # 转换 D: 转为五线谱 (可视化)
+    # ==============================
+    def save_staff(self, output="output.png"):
+        """
+        渲染为png格式的乐谱。
+        需要安装music21并配置有musescore或lilypond。如果没有合适的配置，此函数将什么也不做。
+        """
+        try:
+            from music21 import stream, note, meter, tempo, instrument
+        except ImportError as e:
+            print("未能导入Music21", e)
+            return
+
+        score = stream.Score()
+        part = stream.Part()
+        part.append(instrument.Piano())
+        # 添加拍号与速度
+        ts = meter.TimeSignature(f"{MusicConfig.BEATS_PER_BAR}/4")
+        part.append(ts)
+        mm = tempo.MetronomeMark(number=MusicConfig.TEMPO)
+        part.append(mm)
+
+        # 每个 step 是八分音符 => quarterLength = 1 / STEPS_PER_BEAT
+        step_quarter = 1.0 / MusicConfig.STEPS_PER_BEAT
+
+        grid = np.asarray(self.grid, dtype=int)
+
+        current_pitch = None
+        current_duration_steps = 0
+
+        def _append_event(pitch, dur_steps):
+            if dur_steps <= 0:
+                return
+            qlen = dur_steps * step_quarter
+            if pitch == MusicConfig.REST_VAL or pitch is None:
+                el = note.Rest()
+            else:
+                el = note.Note(pitch)
+            el.duration.quarterLength = qlen
+            part.append(el)
+
+        for token in grid:
+            # 新起音
+            if token > MusicConfig.HOLD_VAL:
+                if current_pitch is not None:
+                    _append_event(current_pitch, current_duration_steps)
+                current_pitch = int(token)
+                current_duration_steps = 1
+
+            # 延音
+            elif token == MusicConfig.HOLD_VAL:
+                if current_pitch is not None:
+                    current_duration_steps += 1
+
+            # 休止
+            else:
+                if current_pitch is not None:
+                    _append_event(current_pitch, current_duration_steps)
+                    current_pitch = None
+                    current_duration_steps = 0
+                # 把单独的休止留到结算时（不立即插入连续休止）
+
+        # 结算最后一个音
+        if current_pitch is not None and current_duration_steps > 0:
+            _append_event(current_pitch, current_duration_steps)
+
+        score.append(part)
+
+        # 清理不必要的还原号
+        # 假设为C大调
+        accidentals=set()
+        for elem in score.recurse().notes:
+            if elem.pitch.accidental is not None:
+                # 获取音高名（如 'C', 'D#'）
+                pitch_name = elem.pitch.name
+                # 判断：如果这个音在调性中是自然的（alter为0），却带有还原号，则隐藏它。假设C大调后这步不必要
+                if elem.pitch.accidental.name == 'natural':
+                    if pitch_name[0] not in accidentals:
+                        elem.pitch.accidental.displayStatus = False
+                    else:
+                        # 升降号后第一个还原音，保留还原号
+                        elem.pitch.accidental.displayStatus = True
+                        accidentals.remove(pitch_name[0])
+                else:
+                    # 出现过升降号，记录该音音名
+                    accidentals.add(pitch_name[0])
+
+        # 尝试直接导出为 PNG（需要外部渲染器如 MuseScore/LilyPond）
+        try:
+            score.write('musicxml.png', fp=output)
+            try:
+                os.remove(output[:-4]+'.musicxml')
+            except:
+                pass
+            print(f"Saved staff image to {output}")
+        except Exception as e:
+            print(f"Failed to render staff PNG: {e}. Will try writing MusicXML instead.")
+            try:
+                xml_path = os.path.splitext(output)[0] + '.xml'
+                score.write('musicxml', fp=xml_path)
+                print(f"Saved MusicXML to {xml_path}. Install MuseScore or LilyPond to export PNG.")
+            except Exception as e2:
+                print(f"Failed to write MusicXML: {e2}")
 
 # ==========================================
 # 3. 单元测试模块
@@ -230,8 +337,11 @@ if __name__ == "__main__":
     # 3. 转换为 AI Token
     tokens = melody.to_remi_tokens()
     print(f"Generated AI Tokens (first 5 events): {tokens[:10]}...")
+
+    # 4. 尝试导出为乐谱图片
+    melody.save_staff("test_melody.png")
     
-    # 4. 手动构造一个 C 大调音阶测试逻辑准确性
+    # 5. 手动构造一个 C 大调音阶测试逻辑准确性
     # C4(60), D4(62), E4(64), F4(65)...
     scale_grid = [60, 1, 62, 1, 64, 1, 65, 1, 
                   67, 1, 69, 1, 71, 1, 72, 1,
@@ -239,4 +349,4 @@ if __name__ == "__main__":
                   0, 0, 0, 0, 0, 0, 0, 0] # 后面补休止
     manual_melody = MelodySequence(scale_grid)
     manual_melody.save_midi("c_scale.mid")
-    print("C Scale MIDI saved.")
+    manual_melody.save_staff("c_scale.png")
