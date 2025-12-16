@@ -265,19 +265,21 @@ class MelodySequence:
                     _append_event(current_pitch, current_duration_steps)
                 current_pitch = int(token)
                 current_duration_steps = 1
-
             # 延音
             elif token == MusicConfig.HOLD_VAL:
-                if current_pitch is not None:
-                    current_duration_steps += 1
-
+                current_duration_steps += 1
+                if current_pitch is None:
+                    current_pitch = 0
             # 休止
             else:
-                if current_pitch is not None:
+                if current_pitch is not None and current_pitch>1:
                     _append_event(current_pitch, current_duration_steps)
-                    current_pitch = None
-                    current_duration_steps = 0
-                # 把单独的休止留到结算时（不立即插入连续休止）
+                # 合并多个休止
+                if current_pitch != 0:
+                    current_pitch = 0
+                    current_duration_steps = 1
+                else:
+                    current_duration_steps += 1
 
         # 结算最后一个音
         if current_pitch is not None and current_duration_steps > 0:
