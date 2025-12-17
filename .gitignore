@@ -208,6 +208,8 @@ __marimo__/
 
 # Pytorch相关
 # 所有.pth文件，但排除特定的几个
+/src/transformer/models/music_gpt_standard_datav3_best.pth
+
 *.pth
 !music_gpt_v1_epoch_150.pth
 !music_gpt_nano_datav3_best.pth
