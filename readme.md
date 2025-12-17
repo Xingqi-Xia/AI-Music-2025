@@ -61,6 +61,13 @@
 - ybSun: Transformer模型...（说说你训练了什么）
 - 我们在12月15日开了个小会，明确了项目进展和分工合作。
 - xqXia: 持续跟进维护说明文档
+- ybSun : 优化了transformer的训练和体验代码, 引入了GIGAMIDI数据集和更高效的流式加载训练数据, 分别训练了NANO,STANDARD和HEAVY三个版本的模型, 考虑的是不同模型大小和运行速度的权衡, 现在生成的旋律片段质量还不错, 可以作为GA的初始种群和变异操作的补充。
+
+## 一点起名的想法
+- transformer模型可以叫做 MelodyGPT,作为旋律生成模型
+- 三个尺寸的模型分别叫 MelodyGPT-Nano, MelodyGPT-Standard, MelodyGPT-Heavy
+- 整个架构可以叫做 TAGA (Transformer-Assisted Genetic Algorithm)
+- VAE模型可以叫做 MelodyVAE (虽然现在可能要弃用了)
 
 ## TODO
 
