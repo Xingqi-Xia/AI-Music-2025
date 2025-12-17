@@ -24,6 +24,9 @@ MusicConfig.BARS=32
 # 添加一些不那么简单的规则
 example_evaluator.add_rule(BasicRules.smooth_contour, weight=1.0)
 
+# 为了结果可复现，添加随机数种子
+np.random.seed(int.from_bytes("SYBNB!".encode()[:4],'big'))
+
 def pitch_in_key_c_major(grid):
     "奖励C大调中的音阶，尤其奖励主音和属音，惩罚副音。"
     score_dict=defaultdict(lambda:0, {
@@ -108,4 +111,6 @@ best_melody_grid = ga_optimizer.best_individual_
 best_melody = MelodySequence(best_melody_grid)
 
 # 导出为wav文件试听
+best_melody.save_staff(os.path.join(EXAMPLE_PATH, "best_melody_2.png"))
 synth.render(best_melody.grid, bpm=120, output_path=os.path.join(EXAMPLE_PATH, "best_melody_2.wav"))
+
