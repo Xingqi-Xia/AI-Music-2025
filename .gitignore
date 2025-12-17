@@ -206,18 +206,33 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-#pytorch
-#所有.pth文件,除了music_gpt_v1_epoch_150.pth
+# Pytorch相关
+# 所有.pth文件，但排除特定的几个
 *.pth
 !music_gpt_v1_epoch_150.pth
-#所有.pt文件
+!music_gpt_nano_datav3_best.pth
+!music_gpt_standard_datav3_best.pth
+
+# 所有.pt文件
 *.pt
-#所有.midi文件
+
+# 所有MIDI文件
 *.midi
 *.mid
-#整个src/transformer/logs_gpt文件夹
-src/transformer/logs_gpt/
 
-#vae
-# 整个VAE文件夹
+# Transformer日志目录
+src/transformer/logs_gpt/
+src/transformer/logs_gpt_nano/
+src/transformer/logs_gpt_standard/
+src/transformer/logs_gpt_small/
+src/transformer/logs_gpt_v3/
+src/transformer/logs_gpt_heavy/
+
+# VAE相关
 src/VAE/
+
+# 数据集相关
+src/transformer/dataset/gigamidi/
+src/transformer/dataset/gp_dataset/
+src/transformer/dataset/giant_piano/
+src/transformer/dataset/data/

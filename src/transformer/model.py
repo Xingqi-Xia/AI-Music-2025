@@ -14,7 +14,15 @@ GPT_CONFIG = {
     "dropout": 0.1,         # Dropout rate
 }
 
-
+GPT_CONFIG_nano = {
+    "vocab_size": 130,
+    "block_size": 64,
+    "n_layer": 4,
+    "n_head": 4,
+    "embed_dim": 256,
+    "dropout": 0.1,
+    "bias": False,
+}
 class MusicGPT(nn.Module):
     """
     A GPT-style Transformer model for music generation and evaluation.

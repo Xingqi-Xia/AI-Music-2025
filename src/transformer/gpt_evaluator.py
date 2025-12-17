@@ -4,7 +4,7 @@ import numpy as np
 import random
 import os
 
-from .model import MusicGPT, GPT_CONFIG
+from .model import MusicGPT, GPT_CONFIG_nano
 
 # 采用绝对路径导入 MusicRep（如果可用）
 MUSICREP_AVAILABLE = False
@@ -31,10 +31,10 @@ class GPTMusicEvaluator:
         self.config = checkpoint.get("config", {})
         if not self.config:
             print("Warning: Model config not found in checkpoint. Using default GPT_CONFIG.")
-            self.config["model_config"] = GPT_CONFIG
+            self.config["model_config"] = GPT_CONFIG_nano
 
         # Ensure vocab size for BOS/EOS
-        self.config["model_config"]["vocab_size"] = 132
+        #self.config["model_config"]["vocab_size"] = 130
 
         # Build model
         self.model = MusicGPT(self.config["model_config"])

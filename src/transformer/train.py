@@ -1,3 +1,7 @@
+# ==============================================================================
+# Old versionn of train.py for MusicGPT (Aborted)
+# ==============================================================================
+
 import os
 import torch
 import torch.nn as nn
@@ -10,25 +14,33 @@ import math
 
 # Import your model definition
 from model import MusicGPT, GPT_CONFIG
+GPT_CONFIG_v2 = {
+    "vocab_size": 132,      # 0-129 for music tokens, + BOS, EOS, PAD etc. if you add them
+    "block_size": 128,      # Context window size
+    "n_layer": 6,           # Number of Transformer blocks
+    "n_head": 6,            # Number of attention heads
+    "embed_dim": 192,       # Embedding dimension
+    "dropout": 0.1,         # Dropout rate
+}
 
 # ==============================================================================
 # 🛠️ Configuration
 # ==============================================================================
 # These can be overridden by command-line arguments if needed
-CONFIG = {
-    "exp_name": "music_gpt_v1",
-    "data_path": "./dataset/classical_gpt_dataset_smart_v2.pt",
+CONFIG_old = {
+    "exp_name": "music_gpt_small",
+    "data_path": "./dataset/giant_piano_mind_v1.pt",
     "checkpoint_dir": "checkpoints_gpt",
-    "log_dir": "logs_gpt",
+    "log_dir": "logs_gpt_small",
     
     # Training parameters
-    "batch_size": 1024,  # Per GPU. A100 can handle this easily.
-    "epochs": 300,
+    "batch_size": 2048,  # Per GPU. A100 can handle this easily.
+    "epochs": 250,
     "learning_rate": 3e-4, # A good starting point for AdamW
-    "num_workers": 16,
+    "num_workers": 24,
     
     # Model parameters (should match model.py)
-    "model_config": GPT_CONFIG,
+    "model_config": GPT_CONFIG_v2,
     
     # LR Scheduler parameters
     "warmup_iters": 200,    # How many steps to warm up for
@@ -38,6 +50,33 @@ CONFIG = {
     # Logging/Saving
     "eval_interval": 1,     # Evaluate on validation set every N epochs
 }
+
+GPT_CONFIG_nano = {
+    "vocab_size": 130,
+    "block_size": 64,
+    "n_layer": 4,
+    "n_head": 4,
+    "embed_dim": 256,
+    "dropout": 0.1,
+    "bias": False,
+}
+
+CONFIG_nano = {
+    "exp_name": "music_gpt_nano_classical",
+    "data_path": "./dataset/giant_piano_mind_v1.pt",
+    "checkpoint_dir": "checkpoints_gpt",
+    "log_dir": "logs_gpt_nano",
+    "batch_size": 1024, # PER GPU batch size
+    "epochs": 200,
+    "learning_rate": 6e-4,
+    "num_workers": 4, # A safe and efficient starting point for multi-GPU
+    "model_config": GPT_CONFIG_nano,
+    "warmup_iters": 2000,
+    "lr_decay_iters": 600000,
+    "min_lr": 6e-5,
+    "eval_interval": 1,
+}
+CONFIG=CONFIG_nano
 
 # ==============================================================================
 # 📦 Custom Dataset for Dynamic Slicing

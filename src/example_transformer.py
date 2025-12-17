@@ -127,8 +127,17 @@ def interactive_generate(evaluator: GPTMusicEvaluator):
 
     if input("Render to WAV? (y/N): ").strip().lower() == "y":
         out_path = input("Output wav path (default example_outputs/transformer_generated/generated.wav): ").strip()
-        output = out_path if out_path else "example_outputs/transformer_generated/generated.wav"
-        render_if_available(generated, output)
+        # 如果output_path为空，则使用默认路径,
+        # 如果output_path没有.wav后缀，则添加.wav后缀
+        # 如果output没有/,则添加example_outputs/transformer_generated/前缀
+        if not out_path:
+            out_path = "example_outputs/transformer_generated/generated.wav"
+        if not out_path.endswith(".wav"):
+            out_path += ".wav"
+        if "/" not in out_path:
+            out_path = os.path.join("example_outputs/transformer_generated", out_path)
+        
+        render_if_available(generated, out_path)
 
 
 def main():
