@@ -211,7 +211,8 @@ __marimo__/
 *.pth
 !music_gpt_v1_epoch_150.pth
 !music_gpt_nano_datav3_best.pth
-!music_gpt_standard_datav3_best.pth
+# !music_gpt_standard_datav3_best.pth
+
 
 # 所有.pt文件
 *.pt
@@ -236,3 +237,6 @@ src/transformer/dataset/gigamidi/
 src/transformer/dataset/gp_dataset/
 src/transformer/dataset/giant_piano/
 src/transformer/dataset/data/
+
+# 所有zip文件
+*.zip
