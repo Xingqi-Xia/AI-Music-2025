@@ -4,10 +4,10 @@
 1~7：do~si的音高
 0：休止符
 -：延音符
-L: 低八度符号，可叠加
-H: 高八度符号，可叠加
-#: 前置升半音符号
-b: 前置降半音符号
+L: 低八度符号，单音符有效
+H: 高八度符号，单音符有效
+#: 前置升半音符号，单音符有效
+b: 前置降半音符号，单音符有效
 """
 
 from .fix_grid import fixGrid
@@ -24,44 +24,25 @@ def jianpu_to_array(jianpu: str, base_pitch: int = 60) -> list[int]:
     }
     seq = []
     offset = 0
-    i = 0
-    while i < len(jianpu):
-        char = jianpu[i]
-        if char == "-":
+    accent = 0
+    for c in jianpu:
+        if c == "-":
             seq.append(1)
-            i += 1
-        elif char == "L":
+        elif c == "L":
             offset -= 12
-            i += 1
-        elif char == "H":
+        elif c == "H":
             offset += 12
-            i += 1
-        elif char == "#":
-            if i + 1 < len(jianpu) and jianpu[i + 1].isdigit():
-                note = int(jianpu[i + 1])
-                if note in PLUSES:
-                    pitch = base_pitch + PLUSES[note] + offset + 1
-                    seq.append(pitch)
-                i += 2
-            else:
-                i += 1
-        elif char == "b":
-            if i + 1 < len(jianpu) and jianpu[i + 1].isdigit():
-                note = int(jianpu[i + 1])
-                if note in PLUSES:
-                    pitch = base_pitch + PLUSES[note] + offset - 1
-                    seq.append(pitch)
-                i += 2
-            else:
-                i += 1
-        elif char.isdigit():
-            note = int(char)
+        elif c == "#":
+            accent += 1
+        elif c == "b":
+            accent -= 1
+        elif c.isdigit():
+            note = int(c)
             if note == 0:
                 seq.append(0)
             elif note in PLUSES:
-                pitch = base_pitch + PLUSES[note] + offset
+                pitch = base_pitch + PLUSES[note] + offset + accent
                 seq.append(pitch)
-            i += 1
-        else:
-            i += 1
+            offset=0
+            accent=0
     return fixGrid(seq)
