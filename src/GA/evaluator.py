@@ -1,6 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import List, Callable, Dict, Union
+from MusicRep import MusicConfig
 
 # 尝试导入 PyTorch，如果没有安装也不影响规则评估器的使用
 try:
