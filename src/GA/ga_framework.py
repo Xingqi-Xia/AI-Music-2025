@@ -139,6 +139,7 @@ class GAEngine:
         self.population: List[Individual] = []
         self.history = {'best_fitness': [], 'avg_fitness': []}
         self.best_individual: Optional[Individual] = None
+        self.best_individual_index: Optional[int] = None
 
     def _repair(self, ind: Individual) -> Individual:
         if self.repair_func:
@@ -172,6 +173,7 @@ class GAEngine:
         
         if self.best_individual is None or current_best.fitness > self.best_individual.fitness:
             self.best_individual = current_best.copy()
+            self.best_individual_index = best_idx
             self.best_individual.fitness = current_best.fitness
         
         self.history['best_fitness'].append(scores[best_idx])
